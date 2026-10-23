@@ -126,6 +126,22 @@ def verify(output: Path) -> list[dict]:
 
         def serve(route):
             parts = urlsplit(route.request.url)
+            if parts.path == "/spaces/record-requests/fixtureManual" and route.request.method == "GET":
+                route.fulfill(
+                    status=200,
+                    content_type="application/json",
+                    body=json.dumps(
+                        {
+                            "space_id": "fixtureManual",
+                            "status": "queued",
+                            "verification_state": "unverified",
+                            "title": "مساحة تدريبية للتوثيق",
+                            "host_username": "fixture_host",
+                            "is_recording": False,
+                        }
+                    ),
+                )
+                return
             response = client.request(
                 route.request.method, parts.path + ("?" + parts.query if parts.query else "")
             )
@@ -137,7 +153,7 @@ def verify(output: Path) -> list[dict]:
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(channel="chrome", headless=True)
-            for section in ("library", "accounts", "processing", "analytics", "health", "settings"):
+            for section in ("manual", "library", "accounts", "processing", "analytics", "health", "settings"):
                 for size, width, height, language in (
                     ("desktop", 1440, 900, "ar"),
                     ("mobile", 390, 844, "ar"),
@@ -146,12 +162,19 @@ def verify(output: Path) -> list[dict]:
                     page = browser.new_page(viewport={"width": width, "height": height})
                     if language == "en":
                         page.add_init_script("localStorage.setItem('xsa_workspace_language','en')")
+                    if section == "manual":
+                        page.add_init_script("localStorage.setItem('xsa_manual_last','fixtureManual')")
                     errors = []
                     page.on("pageerror", lambda error, sink=errors: sink.append(str(error)))
                     page.route("http://xsa.local/**", serve)
                     page.goto(f"http://xsa.local/workspace/{section}", wait_until="domcontentloaded")
                     page.wait_for_function("!document.querySelector('#content .skeleton')")
                     checks = {}
+                    if section == "manual":
+                        page.locator("#manualUrl").fill("https://x.com/i/spaces/fixtureManual")
+                        page.locator("#manualRefresh").wait_for()
+                        checks["request_status_visible"] = page.locator("#manualResult strong").count() == 1
+                        checks["recording_actions_visible"] = page.locator("#manualForm button").count() == 2
                     if section == "accounts":
                         checks["schedule_visible"] = (
                             page.locator("#accountRows").inner_text().find("4.2s / 7") >= 0
