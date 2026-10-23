@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">MADAR · مدار</title>
+  <desc id="desc">مدار صوتي حول نقطة بث، مع رسم موجة للصوت وهوية المشروع.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#091423"/>
+      <stop offset="1" stop-color="#17132e"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#6fe4e2"/>
+      <stop offset="1" stop-color="#ad8af8"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <rect width="1200" height="360" rx="30" fill="url(#night)"/>
+  <circle cx="278" cy="180" r="112" fill="none" stroke="#5bdad0" stroke-opacity=".17" stroke-width="2"/>
+  <circle cx="278" cy="180" r="77" fill="none" stroke="#ad8af8" stroke-opacity=".28" stroke-width="2" stroke-dasharray="5 9"/>
+  <circle cx="278" cy="180" r="37" fill="#53d6cb" opacity=".22" filter="url(#soft)"/>
+  <circle cx="278" cy="180" r="16" fill="#6fe4e2"/>
+  <path d="M73 180h72l17-24 16 53 22-81 21 93 19-63 21 22h54l18-36 20 73 20-95 18 63 16-19h72" fill="none" stroke="url(#glow)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="366" cy="111" r="9" fill="#b494fa">
+    <animate attributeName="opacity" values=".45;1;.45" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <path d="M560 95v170" stroke="#526073" stroke-opacity=".5"/>
+  <text x="624" y="165" fill="#f4f6fb" font-family="Arial, sans-serif" font-size="76" font-weight="800" letter-spacing="9">MADAR</text>
+  <text x="629" y="218" fill="#75ddd8" font-family="Arial, sans-serif" font-size="30" font-weight="700" direction="rtl" text-anchor="end">مدار</text>
+  <text x="627" y="265" fill="#a7b7c9" font-family="Arial, sans-serif" font-size="22">Capture  ·  Transcribe  ·  Understand</text>
+  <circle cx="1114" cy="57" r="3" fill="#7e90b4"/>
+  <circle cx="1152" cy="94" r="2" fill="#7e90b4"/>
+  <circle cx="1061" cy="302" r="2" fill="#7e90b4"/>
+</svg>

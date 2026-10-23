@@ -1,0 +1,73 @@
+# --- secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- browser profiles / cookies / auth ---
+browser-profile/
+profiles/
+**/chrome-profile/
+**/user-data-dir/
+*cookies*.json
+*cookie*.json
+storage_state*.json
+auth*.json
+
+# --- recordings / data / temp ---
+data/
+recordings/
+*.mkv
+*.mp4
+*.wav
+*.webm
+tmp/
+temp/
+*.tmp
+spikes/**/out/
+
+# --- model caches ---
+models/
+.cache/
+hf_cache/
+**/huggingface/
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# --- node ---
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# --- os / ide ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+
+# --- private runtime exports and local verification ---
+artifacts/
+state/
+*.sqlite
+*.sqlite3
+*.db
+*.db-wal
+*.db-shm
+*.jsonl
+docs/private/

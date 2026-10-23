@@ -1,0 +1,3 @@
+services:
+  diarization-worker:
+    gpus: all

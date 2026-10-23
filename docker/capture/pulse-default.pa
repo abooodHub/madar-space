@@ -1,0 +1,16 @@
+### XSpace Analyzer isolated audio server.
+### Only processes inside this container can reach this server. Docker
+### Desktop does not mount WSLg/host audio into containers, so nothing from
+### Windows (YouTube, games, Discord, notifications, microphone) can reach it.
+
+load-module module-native-protocol-unix auth-anonymous=1 socket=/tmp/pulse/native
+
+# Keep the visible noVNC/control browser on a sink that is never recorded.
+# Every recording gets its own dynamically created xspace_slotN sink.
+load-module module-null-sink sink_name=xsa_ui rate=48000 channels=2 sink_properties=device.description=XSAControlSink
+set-default-sink xsa_ui
+set-default-source xsa_ui.monitor
+
+# Never let streams fall back to some other sink.
+load-module module-always-sink
+load-module module-stream-restore restore_device=false

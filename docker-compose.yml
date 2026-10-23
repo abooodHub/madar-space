@@ -1,0 +1,125 @@
+### XSpace Analyzer — Docker Compose
+###
+### Services:
+###   app   — all-in-one: Xvfb + PulseAudio + Chrome + FFmpeg + FastAPI backend
+###
+### Data volumes:
+###   xsa-data   → D:/XSpaceAnalyzer/data (bind mount, Windows path)
+###   xsa-state  → named volume (Linux ext4, so SQLite WAL locking works)
+###   xsa-profile → named volume (persistent Chrome profile)
+###
+### Start:   docker compose up -d
+### VNC:     http://localhost:6080 (log in to X once)
+### API:     http://localhost:8765
+### Docs:    http://localhost:8765/docs
+
+name: xsa
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    image: xsa-app:dev
+    container_name: xsa-app
+    mem_limit: ${XSA_APP_MEMORY_LIMIT:-20g}
+    cpus: ${XSA_APP_CPU_LIMIT:-8.0}
+    pids_limit: ${XSA_APP_PID_LIMIT:-2048}
+    restart: unless-stopped
+    stop_grace_period: 180s
+    shm_size: "2g"
+    ports:
+      - "127.0.0.1:6080:6080"    # noVNC (browser-based VNC for X login)
+      - "127.0.0.1:8765:8765"    # FastAPI backend
+    volumes:
+      - type: bind
+        source: ${XSA_DATA_DIR:-D:/XSpaceAnalyzer/data}
+        target: /data
+      - ./backend:/app/backend
+      - xsa-state:/state          # SQLite DB on ext4 (POSIX locking)
+      - xsa-profile:/profile      # Persistent Chrome profile
+    environment:
+      - XSA_DATA_DIR=/data
+      - XSA_DB_PATH=/state/xsa.sqlite3
+      - XSA_PROFILE_DIR=/profile
+      - XSA_LOG_LEVEL=${XSA_LOG_LEVEL:-INFO}
+      - XSA_POLL_INTERVAL_SECONDS=${XSA_POLL_INTERVAL_SECONDS:-300}
+      - XSA_MAX_ACTIVE_ACCOUNTS=${XSA_MAX_ACTIVE_ACCOUNTS:-10}
+      - XSA_MAX_GRAPHQL_REQUESTS_PER_CYCLE=${XSA_MAX_GRAPHQL_REQUESTS_PER_CYCLE:-60}
+      - XSA_ACCOUNT_POLL_SPACING_SECONDS=${XSA_ACCOUNT_POLL_SPACING_SECONDS:-3}
+      - XSA_ACCOUNT_POLL_JITTER_SECONDS=${XSA_ACCOUNT_POLL_JITTER_SECONDS:-1}
+      - XSA_SIDEBAR_SCAN_INTERVAL_SECONDS=${XSA_SIDEBAR_SCAN_INTERVAL_SECONDS:-300}
+      - XSA_CAPTURE_RECOVERY_TIMEOUT_SECONDS=${XSA_CAPTURE_RECOVERY_TIMEOUT_SECONDS:-120}
+      - XSA_MAX_CAPTURE_RECOVERIES=${XSA_MAX_CAPTURE_RECOVERIES:-3}
+      - XSA_MAX_CONCURRENT_RECORDINGS=${XSA_MAX_CONCURRENT_RECORDINGS:-2}
+      - XSA_PREFER_ANONYMOUS_LISTENING=${XSA_PREFER_ANONYMOUS_LISTENING:-true}
+      - XSA_ALLOW_AUTHENTICATED_FALLBACK=${XSA_ALLOW_AUTHENTICATED_FALLBACK:-true}
+      - XSA_END_CONFIRM_SECONDS=${XSA_END_CONFIRM_SECONDS:-2}
+      - XSA_VIDEO_ENCODER=${XSA_VIDEO_ENCODER:-x264}
+      - XSA_RECORD_FPS=${XSA_RECORD_FPS:-25}
+      - XSA_RECORD_SIZE=${XSA_RECORD_SIZE:-720x1280}
+      - XSA_SCREEN=${XSA_SCREEN:-}
+      - XSA_MIN_FREE_DISK_GB=${XSA_MIN_FREE_DISK_GB:-20}
+      - X_API_BEARER_TOKEN=${X_API_BEARER_TOKEN:-}
+      - LOCAL_LLM_BASE_URL=${LOCAL_LLM_BASE_URL:-}
+      - LOCAL_LLM_MODEL=${LOCAL_LLM_MODEL:-}
+      - LOCAL_LLM_API_KEY=${LOCAL_LLM_API_KEY:-}
+      - DISPLAY=:99
+      - PULSE_SERVER=unix:/tmp/pulse/native
+      - XSA_PULSE_SINK=xspace
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8765/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  vnc-port-bridge:
+    image: xsa-app:dev
+    container_name: xsa-vnc-port-bridge
+    restart: unless-stopped
+    entrypoint: ["python", "/opt/vnc_port_bridge.py"]
+    command: ["6081", "6082", "6083", "6084", "6085", "6086", "6087", "6088", "6089", "6090"]
+    volumes:
+      - ./docker/vnc_port_bridge.py:/opt/vnc_port_bridge.py:ro
+    ports:
+      - "127.0.0.1:6081-6090:6081-6090"
+
+  diarization-worker:
+    profiles: ["diarization"]
+    build:
+      context: .
+      dockerfile: docker/diarization/Dockerfile
+    image: xsa-diarization-worker:dev
+    container_name: xsa-diarization-worker
+    init: true
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ${XSA_DATA_DIR:-D:/XSpaceAnalyzer/data}
+        target: /data
+        read_only: false
+      - xsa-state:/state
+      - xsa-diarization-cache:/model-cache
+    environment:
+      - XSA_DATA_DIR=/data
+      - XSA_DB_PATH=/state/xsa.sqlite3
+      - XSA_API_BASE=http://app:8765
+      - XSA_DIARIZATION_POLL_SECONDS=${XSA_DIARIZATION_POLL_SECONDS:-30}
+      - XSA_DIARIZATION_DEVICE=${XSA_DIARIZATION_DEVICE:-auto}
+      - XSA_DIARIZATION_MERGE_GAP_SECONDS=${XSA_DIARIZATION_MERGE_GAP_SECONDS:-0.1}
+      - HF_HOME=/model-cache
+      - HF_TOKEN=${HF_TOKEN:-}
+
+volumes:
+  xsa-state:
+    name: xsa-state
+  xsa-profile:
+    name: xsa-profile
+  xsa-diarization-cache:
+    name: xsa-diarization-cache

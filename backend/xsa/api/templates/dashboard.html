@@ -1,0 +1,601 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSpace Analyzer — مركز القيادة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>__XSA_DASHBOARD_CONFIG_JS__</script>
+  <style>__XSA_DASHBOARD_CSS__</style>
+</head>
+<body id="top">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       HEADER — Site branding + live indicator + VNC link
+  ═══════════════════════════════════════════════════════════ -->
+  <header class="site-header">
+    <!-- Live recording indicator -->
+    <div id="liveBadge" class="badge badge-red hidden" style="animation: none;">
+      <div class="rec-dot" style="width:7px;height:7px;"></div>
+      <span id="liveBadgeText">تسجيل جاري</span>
+    </div>
+
+    <!-- ── SYSTEM HEALTH PANEL ─────────────────────────────── -->
+    <div id="systemHealthSection" class="panel dashboard-health-inline">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon" style="background:rgba(63,185,80,0.12);color:var(--ok);">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          صحة النظام
+          <span id="maintenanceBadge" class="badge badge-amber hidden" style="margin-right:4px;">
+            <i class="fa-solid fa-triangle-exclamation"></i> وضع الصيانة
+          </span>
+        </div>
+      </div>
+      <div class="panel-body" style="padding:10px 16px;">
+        <div id="systemHealthItems" class="flex flex-wrap gap-1.5" aria-live="polite">
+          <span class="health-pill health-pending"><i class="fa-solid fa-clock"></i> جارٍ الفحص…</span>
+        </div>
+        <div id="joiningSessionsPanel" class="hidden mt-2 space-y-1.5" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Stats inline: Spaces / Accounts / Live -->
+      <div class="stat-bar">
+        <div class="stat-bar-item">
+          <i class="fa-solid fa-podcast stat-bar-icon" style="color:var(--cyan);"></i>
+          <div>
+            <div class="stat-bar-label">المساحات</div>
+            <div class="stat-bar-value" id="heroSpacesKpi">—</div>
+          </div>
+        </div>
+        <div class="stat-bar-item">
+          <i class="fa-solid fa-users stat-bar-icon" style="color:var(--ok);"></i>
+          <div>
+            <div class="stat-bar-label">الحسابات</div>
+            <div class="stat-bar-value" id="heroAccountsKpi">—</div>
+          </div>
+        </div>
+        <div class="stat-bar-item">
+          <i class="fa-solid fa-tower-broadcast stat-bar-icon" style="color:var(--accent);"></i>
+          <div>
+            <div class="stat-bar-label">مباشر الآن</div>
+            <div class="stat-bar-value" id="heroLiveKpi">—</div>
+          </div>
+        </div>
+      </div>
+
+      <a href="http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale" target="_blank"
+         class="cmd-btn cmd-btn-ghost" style="font-size:11px;">
+        <i class="fa-solid fa-desktop" style="color:var(--accent-blue);"></i>
+        <span>شاشة X</span>
+      </a>
+    </div>
+  </header>
+
+
+  <span id="statTotalSpaces" class="hidden" aria-hidden="true">0</span>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PAGE NAV — Sticky section links
+  ═══════════════════════════════════════════════════════════ -->
+  <nav class="page-nav" aria-label="التنقل">
+    <a href="#top"><i class="fa-solid fa-house"></i> الرئيسية</a>
+    <a href="#liveFeedSection"><i class="fa-solid fa-tower-broadcast"></i> مباشر X</a>
+    <a href="/workspace/manual"><i class="fa-solid fa-circle-dot"></i> تسجيل بالرابط</a>
+    <a href="/workspace/library"><i class="fa-solid fa-box-archive"></i> المكتبة</a>
+    <a href="/workspace/accounts"><i class="fa-solid fa-users"></i> الحسابات</a>
+    <a href="/workspace/processing"><i class="fa-solid fa-gears"></i> مركز المعالجة</a>
+    <a href="/workspace/analytics"><i class="fa-solid fa-chart-line"></i> التحليلات</a>
+    <a href="/workspace/health"><i class="fa-solid fa-heart-pulse"></i> صحة النظام</a>
+    <a href="/workspace/settings"><i class="fa-solid fa-sliders"></i> الإعدادات</a>
+    <a href="#activeSessionsSection"><i class="fa-solid fa-record-vinyl"></i> جاري التسجيل</a>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════════════════ -->
+  <main class="page-main">
+
+    <section id="processingCenterSection" class="panel" aria-labelledby="processingCenterTitle">
+      <div class="panel-header"><div class="panel-title"><div class="panel-icon" style="background:rgba(167,139,250,.15);color:#c4b5fd"><i class="fa-solid fa-gears"></i></div><span id="processingCenterTitle">مركز المعالجة</span></div></div>
+      <div class="panel-body"><div id="processingCenterSummary" class="grid grid-cols-2 md:grid-cols-4 gap-2" aria-live="polite"></div><div id="processingActiveList" class="mt-3 text-xs text-gray-400"></div><div id="processingJobRows" class="mt-3 grid gap-2" aria-live="polite"></div></div>
+    </section>
+
+    <!-- ── ACTIVE RECORDING SESSIONS ──────────────────────── -->
+    <div id="activeSessionsSection" class="panel hidden">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon" style="background:rgba(248,81,73,0.12);color:var(--bad);">
+            <i class="fa-solid fa-record-vinyl"></i>
+          </div>
+          المساحات قيد التسجيل الآن
+          <span id="activeSessionsCountBadge" class="badge badge-red">0</span>
+        </div>
+        <div class="waveform" aria-hidden="true">
+          <div class="waveform-bar" style="animation-delay:0s;"></div>
+          <div class="waveform-bar" style="animation-delay:0.15s;"></div>
+          <div class="waveform-bar" style="animation-delay:0.3s;"></div>
+          <div class="waveform-bar" style="animation-delay:0.45s;"></div>
+          <div class="waveform-bar" style="animation-delay:0.1s;"></div>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div id="activeSessionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+      </div>
+    </div>
+
+    <!-- ── LIVE FEED SECTION ───────────────────────────────── -->
+    <div id="liveFeedSection" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon" style="background:rgba(120,86,255,0.12);color:var(--accent);">
+            <i class="fa-solid fa-tower-broadcast"></i>
+          </div>
+          بث مباشر على X
+          <div class="live-indicator" style="margin-right:4px;" aria-hidden="true"></div>
+          <span id="liveFeedCountBadge" class="badge badge-purple">0 مساحة</span>
+        </div>
+        <button onclick="updateLiveFeed()" class="cmd-btn cmd-btn-ghost" style="height:26px;font-size:11px;">
+          <i class="fa-solid fa-rotate"></i> تحديث
+        </button>
+      </div>
+      <div class="panel-body">
+        <p style="font-size:10px;color:var(--text-dim);margin-bottom:10px;">
+          يعرض هذا القسم البث الذي اكتُشف من الحسابات المضافة للمراقبة فقط؛ عدم ظهور مساحة هنا لا يعني عدم وجود بث من حساب غير مراقب، وظهورها لا يبدأ التسجيل تلقائياً.
+        </p>
+        <div id="liveFeedGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+          <div class="dim" style="font-size:12px;padding:20px 0;grid-column:1/-1;text-align:center;">
+            <i class="fa-solid fa-satellite-dish" style="margin-left:6px;opacity:0.5;"></i>
+            جاري الاستكشاف…
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MONITORED ACCOUNTS ──────────────────────────────── -->
+    <div id="accountsSection" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon" style="background:rgba(29,155,240,0.12);color:var(--cyan);">
+            <i class="fa-solid fa-users-viewfinder"></i>
+          </div>
+          الحسابات المُراقبة
+          <span class="badge badge-blue">
+            <span id="accountCount" class="mono">0</span>
+          </span>
+          <span id="filteredAccountCount" class="badge badge-gray hidden"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <input type="text" id="newAccountInput" placeholder="أضف @حساب"
+                 class="cmd-input" style="width:130px;height:28px;font-size:11px;">
+          <button onclick="addAccount()" class="cmd-btn cmd-btn-primary" style="height:28px;font-size:11px;">
+            <i class="fa-solid fa-plus"></i> إضافة
+          </button>
+          <button onclick="refreshAvatars()" class="cmd-btn cmd-btn-ghost" style="height:28px;font-size:11px;" title="تحديث الصور">
+            <i class="fa-solid fa-rotate"></i>
+          </button>
+          <button id="accountsToggleButton" onclick="toggleAccountsPanel()"
+                  class="cmd-btn cmd-btn-ghost" style="height:28px;font-size:11px;"
+                  aria-expanded="false" aria-controls="accountsContent">
+            <i class="fa-solid fa-sliders"></i> الفلاتر
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body" style="padding-bottom:10px;">
+        <!-- Recording now row -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--bad);">
+              <div class="rec-dot"></div> يسجل الآن
+            </div>
+            <span id="recordingAccountsCount" class="mono dim" style="font-size:11px;">0 حساب</span>
+          </div>
+          <div id="recordingAccountsGrid" class="flex flex-wrap gap-2">
+            <span class="dim" style="font-size:11px;">لا يوجد حساب يسجل الآن</span>
+          </div>
+        </div>
+
+        <!-- Preview grid (latest accounts) -->
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;">أحدث الحسابات</span>
+            <span id="accountsPreviewCount" class="mono dim" style="font-size:10px;"></span>
+          </div>
+          <div id="accountsPreviewGrid" class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2" aria-live="polite">
+            <div class="dim" style="font-size:11px;grid-column:1/-1;">جاري التحميل…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable: Filters + Full Grid -->
+      <div id="accountsContent" class="hidden">
+        <div style="border-top:1px solid var(--border);padding:12px 16px;background:var(--bg-panel2);">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <!-- Search -->
+            <div style="position:relative;min-width:160px;flex:1;max-width:260px;">
+              <i class="fa-solid fa-magnifying-glass" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text-dim);"></i>
+              <input type="text" id="accountSearchInput" oninput="applyAccountFilters()"
+                     placeholder="بحث بالاسم أو @..."
+                     class="cmd-input" style="width:100%;padding-right:30px;">
+            </div>
+            <!-- Filter pills -->
+            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+              <button onclick="setAccountFilter('all')" id="fltBtnAll" class="flt-btn active">الكل</button>
+              <button onclick="setAccountFilter('recording')" id="fltBtnRecording" class="flt-btn">
+                <span class="rec-dot" style="width:6px;height:6px;display:inline-block;vertical-align:middle;margin-left:4px;"></span>يسجل
+              </button>
+              <button onclick="setAccountFilter('live')" id="fltBtnLive" class="flt-btn">مباشر</button>
+              <button onclick="setAccountFilter('active')" id="fltBtnActive" class="flt-btn">نشط</button>
+              <button onclick="setAccountFilter('paused')" id="fltBtnPaused" class="flt-btn">متوقف</button>
+            </div>
+            <!-- Sort -->
+            <select id="accountSortSelect" onchange="applyAccountFilters()" class="cmd-select" style="height:32px;font-size:11px;">
+              <option value="name">الاسم (أ–ي)</option>
+              <option value="spaces_desc">الأكثر تسجيلاً</option>
+              <option value="last_space">آخر مساحة</option>
+              <option value="recent">المضاف حديثاً</option>
+            </select>
+          </div>
+          <!-- Tags bar -->
+          <div id="tagsFilterBar" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;font-size:11px;">
+            <span style="color:var(--text-dim);font-weight:700;">
+              <i class="fa-solid fa-tags" style="color:var(--accent-purple);margin-left:4px;"></i>العلامات:
+            </span>
+            <div id="tagsPillsContainer" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"></div>
+          </div>
+        </div>
+        <!-- Full accounts grid -->
+        <div style="padding:12px 16px;">
+          <div id="accountsGrid" class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-9 xl:grid-cols-12 gap-2">
+            <div class="dim" style="font-size:11px;grid-column:1/-1;text-align:center;padding:16px;">جاري التحميل…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── LIBRARY SECTION ─────────────────────────────────── -->
+    <div id="librarySection" class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon" style="background:rgba(29,155,240,0.08);color:var(--cyan);">
+            <i class="fa-solid fa-box-archive"></i>
+          </div>
+          مكتبة التسجيلات
+          <span style="font-size:10px;color:var(--text-muted);font-weight:400;" id="libraryCountLabel">تحميل…</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+          <select id="libraryScopeSelect" onchange="loadSpaces()" class="cmd-select" style="height:28px;font-size:11px;">
+            <option value="saved">الملفات المحفوظة</option>
+            <option value="all">كل المحاولات</option>
+          </select>
+          <select id="librarySortSelect" onchange="loadSpaces()" class="cmd-select" style="height:28px;font-size:11px;">
+            <option value="newest">الأحدث أولاً</option>
+            <option value="oldest">الأقدم أولاً</option>
+            <option value="largest">الأكبر حجماً</option>
+          </select>
+          <button id="libraryExpandButton" onclick="toggleAllSpaces()"
+                  class="cmd-btn cmd-btn-ghost hidden" style="height:28px;font-size:11px;">
+            <i class="fa-solid fa-list"></i> عرض الكل
+          </button>
+          <button onclick="loadSpaces()" class="cmd-btn cmd-btn-ghost" style="height:28px;font-size:11px;">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <!-- Search -->
+        <div style="position:relative;margin-bottom:12px;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-dim);"></i>
+          <input id="librarySearchInput" type="search" oninput="searchSpaces()"
+                 aria-label="البحث في التسجيلات" title="البحث في التسجيلات — اضغط / للتركيز"
+                 placeholder="ابحث بعنوان المساحة أو المضيف أو المعرّف… ( / )"
+                 class="cmd-input" style="width:100%;max-width:600px;padding-right:36px;">
+        </div>
+        <!-- Cards -->
+        <div id="spacesCardsContainer" class="space-y-2" style="min-height:160px;">
+          <div data-library-loader style="text-align:center;padding:40px 0;color:var(--text-muted);font-size:12px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:18px;margin-bottom:8px;display:block;"></i>
+            جاري تحميل المكتبة…
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         VIDEO PLAYER MODAL
+    ═══════════════════════════════════════════════════════ -->
+    <div id="videoModal" class="modal-overlay hidden">
+      <div class="modal-box" style="max-width:1080px;">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title" id="videoModalTitle">معاينة التسجيل</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;" id="videoModalSubtitle"></div>
+          </div>
+          <button onclick="closeVideoModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div id="videoPlayerStage" class="space-y-3">
+          <div class="player-shell" style="max-height:62vh;min-height:200px;display:flex;align-items:center;justify-content:center;">
+            <video id="mainVideoPlayer" playsinline preload="metadata"
+                   style="width:100%;max-height:62vh;aspect-ratio:16/9;object-fit:contain;border-radius:6px;outline:none;"></video>
+          </div>
+          <div id="playerSpeakerStrip" class="player-speaker-strip" aria-live="polite">
+            <div class="player-speaker-avatar"><i class="fa-solid fa-microphone-lines"></i></div>
+            <div class="player-speaker-copy">
+              <span class="player-speaker-kicker">المتحدث عند هذا التوقيت</span>
+              <strong id="playerSpeakerName">حمّل تسجيلًا لعرض المتحدث</strong>
+              <span id="playerSpeakerMeta">ستظهر المداخلة المتزامنة هنا</span>
+            </div>
+            <div id="playerAudioBars" class="player-audio-bars" role="img" aria-label="مؤشر مستوى صوت التسجيل"></div>
+            <div class="player-audio-status"><span id="playerAudioState">متوقف</span><strong id="playerAudioLevel">0%</strong></div>
+            <div id="playerAudioNote" class="player-audio-note">مستوى الصوت يظهر أثناء مداخلة المتحدث.</div>
+          </div>
+          <div>
+            <div class="player-turns-head"><span>مداخلات المتحدثين · اضغط على المقطع للانتقال إليه</span><span id="playerTurnsCount">—</span></div>
+            <div class="player-speaker-map" aria-label="مسارات حديث المتحدثين">
+              <div id="playerSpeakerTrack" class="player-speaker-lanes"><div class="player-lanes-empty">جارٍ تحميل خط المتحدثين…</div></div>
+              <div class="player-speaker-axis"><span></span><div id="playerSpeakerAxisTicks" class="player-speaker-axis-ticks"></div></div>
+            </div>
+          </div>
+          <div class="player-controls">
+            <input type="range" id="videoSeekSlider" dir="ltr" min="0" max="1000" step="1" value="0"
+                   oninput="seekVideo(this.value)" aria-label="موضع التشغيل" class="player-seek" style="height:4px;margin-bottom:10px;">
+            <div dir="ltr" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button onclick="toggleVideoPlay()" id="btnModalPlay"
+                        style="width:34px;height:34px;border-radius:6px;background:var(--accent-blue);color:#fff;border:none;display:grid;place-items:center;">
+                  <i class="fa-solid fa-play text-xs" id="iconModalPlay"></i>
+                </button>
+                <button onclick="skipVideo(-10)"
+                        style="width:30px;height:30px;border-radius:6px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);display:grid;place-items:center;">
+                  <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
+                </button>
+                <button onclick="skipVideo(10)"
+                        style="width:30px;height:30px;border-radius:6px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);display:grid;place-items:center;">
+                  <i class="fa-solid fa-rotate-right" style="font-size:11px;"></i>
+                </button>
+                <span id="videoTimeDisplay" dir="ltr" class="mono dim" style="font-size:11px;">00:00 / 00:00</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <select id="videoPlaybackRate" onchange="changePlaybackRate(this.value)"
+                        class="cmd-select" style="height:30px;font-size:11px;">
+                  <option value="1">1×</option>
+                  <option value="1.25">1.25×</option>
+                  <option value="1.5">1.5×</option>
+                  <option value="2">2×</option>
+                </select>
+                <button onclick="unmuteAndMaxVolume()" title="رفع الصوت"
+                        style="color:var(--accent-blue);background:none;border:none;font-size:14px;">
+                  <i class="fa-solid fa-volume-high"></i>
+                </button>
+                <input type="range" id="videoVolumeSlider" min="0" max="1" step="0.05" value="1"
+                       oninput="changeVideoVolume(this.value)" aria-label="مستوى الصوت"
+                       style="width:80px;accent-color:var(--accent-blue);height:4px;cursor:pointer;">
+                <span id="volumePercent" class="mono dim" style="font-size:10px;width:32px;">100%</span>
+                <button onclick="toggleFullscreen()"
+                        style="width:30px;height:30px;border-radius:6px;background:var(--bg-panel);border:1px solid var(--border);color:var(--text);display:grid;place-items:center;">
+                  <i class="fa-solid fa-expand" style="font-size:11px;"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <a id="videoDownloadBtn" href="#" download class="cmd-btn cmd-btn-primary" style="text-decoration:none;">
+              <i class="fa-solid fa-download"></i> تحميل MP4
+            </a>
+            <a id="videoOpenSpaceBtn" href="#" target="_blank" class="cmd-btn cmd-btn-ghost" style="text-decoration:none;">
+              <i class="fa-brands fa-x-twitter"></i> فتح في X
+            </a>
+          </div>
+          <button onclick="closeVideoModal()" class="cmd-btn cmd-btn-ghost">إغلاق</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         LIVE SPACE ACTION MODAL
+    ═══════════════════════════════════════════════════════ -->
+    <div id="spaceActionModal" class="modal-overlay hidden">
+      <div class="modal-box" style="max-width:440px;">
+        <div class="modal-header">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <img id="modalSpaceAvatar" src="" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:1px solid var(--border);">
+            <div>
+              <div class="modal-title" id="modalSpaceHost"></div>
+              <div style="font-size:11px;color:var(--accent-blue);font-weight:600;" id="modalSpaceRole"></div>
+            </div>
+          </div>
+          <button onclick="closeSpaceActionModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div class="modal-title" style="font-size:15px;margin-bottom:6px;" id="modalSpaceTitle"></div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-muted);">
+            <span id="modalSpaceListeners"><i class="fa-solid fa-headphones" style="margin-left:4px;color:var(--accent);"></i></span>
+            <span id="modalSpaceStatusBadge" class="badge"></span>
+          </div>
+        </div>
+
+        <div style="background:var(--bg-panel2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:14px;">
+          <div style="font-size:10px;color:var(--text-dim);font-weight:700;margin-bottom:4px;">رابط المساحة:</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <input type="text" id="modalSpaceUrlInput" readonly
+                   style="flex:1;background:transparent;border:none;font-size:11px;color:var(--accent-blue);font-family:'JetBrains Mono',monospace;outline:none;direction:ltr;">
+            <button onclick="copySpaceModalUrl()" id="btnCopySpaceUrl" class="cmd-btn cmd-btn-ghost" style="height:26px;font-size:11px;">
+              <i class="fa-solid fa-copy"></i> نسخ
+            </button>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button id="modalBtnRecordNow" onclick="modalRecordNow()"
+                  class="cmd-btn cmd-btn-primary" style="width:100%;justify-content:center;background:#c0392b;height:38px;font-size:13px;">
+            <i class="fa-solid fa-circle-dot"></i> بدء التسجيل الآن
+          </button>
+          <a id="modalBtnOpenX" href="#" target="_blank" class="cmd-btn cmd-btn-ghost" style="width:100%;justify-content:center;text-decoration:none;height:34px;">
+            <i class="fa-brands fa-x-twitter"></i> فتح في X
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         TAGS MODAL
+    ═══════════════════════════════════════════════════════ -->
+    <div id="tagsModal" class="modal-overlay hidden">
+      <div class="modal-box" style="max-width:380px;">
+        <div class="modal-header">
+          <div class="modal-title">إدارة علامات الحساب</div>
+          <button onclick="closeTagsModal()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">
+          الحساب: <b id="tagsModalUsername" style="color:var(--text);font-family:'JetBrains Mono',monospace;"></b>
+        </p>
+        <label style="font-size:11px;color:var(--text-dim);display:block;margin-bottom:6px;">العلامات (مفصولة بفواصل):</label>
+        <input type="text" id="tagsModalInput" placeholder="مثال: سياسة, رياضة, نخبوي"
+               class="cmd-input" style="width:100%;margin-bottom:10px;">
+        <div id="tagsSuggestions" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:14px;font-size:11px;"></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid var(--border);">
+          <button onclick="closeTagsModal()" class="cmd-btn cmd-btn-ghost">إلغاء</button>
+          <button onclick="saveAccountTags()" class="cmd-btn cmd-btn-primary">حفظ العلامات</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         SPACE INSPECTOR (inline panel)
+    ═══════════════════════════════════════════════════════ -->
+    <div id="inspectorCard" class="panel hidden">
+      <div class="panel-header">
+        <div class="panel-title">
+          <div class="panel-icon" style="background:rgba(29,155,240,0.1);color:var(--cyan);">
+            <i class="fa-solid fa-microscope"></i>
+          </div>
+          فاحص المساحة
+          <span id="insStateBadge" class="badge"></span>
+          <code id="insSpaceId" class="mono dim" style="font-size:10px;"></code>
+        </div>
+        <button onclick="closeInspector()" class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="panel-body">
+        <!-- Space meta -->
+        <div style="margin-bottom:14px;">
+          <h2 id="insTitle" style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;">عنوان المساحة</h2>
+          <p id="insHost" style="font-size:12px;color:var(--text-muted);">المضيف: @username</p>
+          <div id="insSpaceDetails" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:8px;font-size:11px;color:var(--text-muted);">
+            <a id="insSpaceUrl" href="#" target="_blank" rel="noopener" style="color:var(--accent-blue);">فتح في X</a>
+            <a id="insTimelineDownload" href="#" style="color:var(--accent-purple);">تنزيل تقرير JSON</a>
+            <span id="insRecordingTime"></span>
+            <code id="insFolderPath" class="mono" style="font-size:10px;color:var(--text-dim);"></code>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="inspector-tabs">
+          <button onclick="switchTab('tabTimeline')" id="btnTabTimeline" class="inspector-tab active">
+            <i class="fa-solid fa-chart-gantt" style="margin-left:6px;"></i>الخط الزمني
+          </button>
+          <button onclick="switchTab('tabTranscript')" id="btnTabTranscript" class="inspector-tab">
+            <i class="fa-solid fa-align-right" style="margin-left:6px;"></i>النص المفرّغ
+          </button>
+          <button onclick="switchTab('tabSummary')" id="btnTabSummary" class="inspector-tab">
+            <i class="fa-solid fa-wand-magic-sparkles" style="margin-left:6px;"></i>ملخص AI
+          </button>
+        </div>
+
+        <!-- Tab 1: Timeline -->
+        <div id="tabTimeline" style="padding-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <span style="font-size:11px;font-weight:700;color:var(--text);">توزيع وقت التحدث</span>
+            <span id="timelineTotalEvents" class="mono dim" style="font-size:10px;">0 حدث</span>
+          </div>
+          <div id="timelineBars" class="space-y-2"></div>
+        </div>
+
+        <!-- Tab 2: Transcript -->
+        <div id="tabTranscript" class="hidden" style="padding-top:14px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <input type="text" id="transcriptSearch" oninput="filterTranscript()"
+                   placeholder="بحث في النص…"
+                   class="cmd-input" style="width:220px;height:30px;font-size:11px;">
+            <div style="display:flex;gap:6px;">
+              <button onclick="downloadArtifact('srt')" class="cmd-btn cmd-btn-ghost" style="height:28px;font-size:11px;">
+                <i class="fa-solid fa-download"></i> SRT
+              </button>
+              <button onclick="triggerTranscribe()" class="cmd-btn cmd-btn-ghost" style="height:28px;font-size:11px;color:var(--accent-blue);border-color:rgba(29,155,240,0.3);">
+                <i class="fa-solid fa-rotate"></i> إعادة النسخ
+              </button>
+            </div>
+          </div>
+          <div id="transcriptList" class="space-y-2 custom-scroll" style="max-height:380px;overflow-y:auto;padding-left:4px;"></div>
+        </div>
+
+        <!-- Tab 3: AI Summary -->
+        <div id="tabSummary" class="hidden" style="padding-top:14px;">
+          <div class="panel" style="margin-bottom:10px;">
+            <div class="panel-header">
+              <div class="panel-title" style="color:var(--cyan);">
+                <i class="fa-solid fa-sparkles" style="margin-left:6px;"></i>الملخص التنفيذي
+              </div>
+            </div>
+            <div class="panel-body">
+              <p id="summaryText" style="font-size:12px;color:var(--muted);line-height:1.7;">لم يتم إنشاء ملخص بعد.</p>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-bottom:10px;">
+            <div class="panel-header">
+              <div class="panel-title" style="color:var(--accent);">
+                <i class="fa-solid fa-tags" style="margin-left:6px;"></i>أهم المواضيع
+              </div>
+            </div>
+            <div class="panel-body">
+              <div id="topicsTags" style="display:flex;flex-wrap:wrap;gap:6px;">
+                <span class="dim" style="font-size:11px;">لا توجد مواضيع</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-bottom:10px;">
+            <div class="panel-header">
+              <div class="panel-title" style="color:var(--warn);">
+                <i class="fa-solid fa-microscope" style="margin-left:6px;"></i>تحليل معمّق
+              </div>
+            </div>
+            <div class="panel-body" style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:8px;">
+              <div id="deepParticipation">لا توجد مؤشرات بعد.</div>
+              <div id="deepTakeaways" class="space-y-1"></div>
+              <div id="deepOpenQuestions" class="space-y-1"></div>
+              <div id="deepTopics" class="space-y-2"></div>
+              <div id="deepMoments" class="space-y-2"></div>
+              <div id="deepQuestions" class="space-y-2"></div>
+              <p id="deepCaveats" style="font-size:10px;color:var(--text-dim);line-height:1.6;"></p>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;">
+            <button onclick="triggerAnalyze()" class="cmd-btn cmd-btn-primary"
+                    style="background:linear-gradient(90deg,var(--accent-blue),var(--accent-purple));">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> تشغيل التحليل بالذكاء الاصطناعي
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>__XSA_DASHBOARD_JS__</script>
+</body>
+</html>

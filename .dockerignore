@@ -1,0 +1,11 @@
+.git
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+data
+frontend/node_modules
+*.mkv
+*.mp4
+*.wav
+.env
