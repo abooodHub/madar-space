@@ -1,31 +1,31 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
   <title id="title">MADAR · مدار</title>
-  <desc id="desc">مدار صوتي حول نقطة بث، مع رسم موجة للصوت وهوية المشروع.</desc>
+  <desc id="desc">هوية مدار: بث في مركز مدارات صوتية، من التسجيل إلى التفريغ والتحليل.</desc>
   <defs>
-    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#091423"/>
-      <stop offset="1" stop-color="#17132e"/>
-    </linearGradient>
-    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#6fe4e2"/>
-      <stop offset="1" stop-color="#ad8af8"/>
-    </linearGradient>
-    <filter id="soft"><feGaussianBlur stdDeviation="14"/></filter>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#091620"/><stop offset=".62" stop-color="#102536"/><stop offset="1" stop-color="#191b37"/></linearGradient>
+    <linearGradient id="signal" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#4be0c8"/><stop offset="1" stop-color="#a3a1ff"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#47dec6" stop-opacity=".3"/><stop offset="1" stop-color="#47dec6" stop-opacity="0"/></radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#b6d2e7" stroke-opacity=".05"/></pattern>
   </defs>
-  <rect width="1200" height="360" rx="30" fill="url(#night)"/>
-  <circle cx="278" cy="180" r="112" fill="none" stroke="#5bdad0" stroke-opacity=".17" stroke-width="2"/>
-  <circle cx="278" cy="180" r="77" fill="none" stroke="#ad8af8" stroke-opacity=".28" stroke-width="2" stroke-dasharray="5 9"/>
-  <circle cx="278" cy="180" r="37" fill="#53d6cb" opacity=".22" filter="url(#soft)"/>
-  <circle cx="278" cy="180" r="16" fill="#6fe4e2"/>
-  <path d="M73 180h72l17-24 16 53 22-81 21 93 19-63 21 22h54l18-36 20 73 20-95 18 63 16-19h72" fill="none" stroke="url(#glow)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="366" cy="111" r="9" fill="#b494fa">
-    <animate attributeName="opacity" values=".45;1;.45" dur="3s" repeatCount="indefinite"/>
-  </circle>
-  <path d="M560 95v170" stroke="#526073" stroke-opacity=".5"/>
-  <text x="624" y="165" fill="#f4f6fb" font-family="Arial, sans-serif" font-size="76" font-weight="800" letter-spacing="9">MADAR</text>
-  <text x="629" y="218" fill="#75ddd8" font-family="Arial, sans-serif" font-size="30" font-weight="700" direction="rtl" text-anchor="end">مدار</text>
-  <text x="627" y="265" fill="#a7b7c9" font-family="Arial, sans-serif" font-size="22">Capture  ·  Transcribe  ·  Understand</text>
-  <circle cx="1114" cy="57" r="3" fill="#7e90b4"/>
-  <circle cx="1152" cy="94" r="2" fill="#7e90b4"/>
-  <circle cx="1061" cy="302" r="2" fill="#7e90b4"/>
+  <rect width="1200" height="390" rx="28" fill="url(#background)"/>
+  <rect width="1200" height="390" rx="28" fill="url(#grid)"/>
+  <circle cx="253" cy="193" r="177" fill="url(#aura)"/>
+  <circle cx="253" cy="193" r="134" fill="none" stroke="#72e4d4" stroke-opacity=".19" stroke-width="1.5"/>
+  <circle cx="253" cy="193" r="98" fill="none" stroke="#a3a1ff" stroke-opacity=".28" stroke-width="1.5" stroke-dasharray="5 9"/>
+  <circle cx="253" cy="193" r="62" fill="none" stroke="#72e4d4" stroke-opacity=".33" stroke-width="1.5"/>
+  <circle cx="253" cy="193" r="22" fill="#5bdfcf" fill-opacity=".18"/><circle cx="253" cy="193" r="10" fill="#72e4d4"/>
+  <circle cx="350" cy="97" r="7" fill="#a3a1ff"/><circle cx="121" cy="169" r="5" fill="#72e4d4"/>
+  <path d="M54 193h76l17-18 15 43 20-71 18 89 18-62 15 19h47l17-27 17 55 18-75 19 48 13-15h79" fill="none" stroke="url(#signal)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M506 68v254" stroke="#aed1e2" stroke-opacity=".17"/>
+  <rect x="565" y="48" width="196" height="31" rx="15.5" fill="#53dbcb" fill-opacity=".12" stroke="#72e4d4" stroke-opacity=".28"/>
+  <text x="584" y="69" fill="#8be9dc" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="2">X SPACES WORKSPACE</text>
+  <text x="559" y="171" fill="#f5fbff" font-family="Arial, sans-serif" font-size="90" font-weight="800" letter-spacing="8">MADAR</text>
+  <text x="568" y="234" fill="#79e8d9" font-family="Arial, sans-serif" font-size="52" font-weight="700">مدار</text>
+  <text x="567" y="278" fill="#b4cad7" font-family="Arial, sans-serif" font-size="20">Capture  /  Transcribe  /  Understand</text>
+  <rect x="566" y="307" width="160" height="43" rx="12" fill="#ffffff" fill-opacity=".07" stroke="#ffffff" stroke-opacity=".12"/>
+  <rect x="737" y="307" width="170" height="43" rx="12" fill="#ffffff" fill-opacity=".07" stroke="#ffffff" stroke-opacity=".12"/>
+  <rect x="918" y="307" width="190" height="43" rx="12" fill="#ffffff" fill-opacity=".07" stroke="#ffffff" stroke-opacity=".12"/>
+  <text x="588" y="334" fill="#d4e8ef" font-family="Arial, sans-serif" font-size="17">01  CAPTURE</text>
+  <text x="760" y="334" fill="#d4e8ef" font-family="Arial, sans-serif" font-size="17">02  TRANSCRIPT</text>
+  <text x="941" y="334" fill="#d4e8ef" font-family="Arial, sans-serif" font-size="17">03  INSIGHT</text>
 </svg>

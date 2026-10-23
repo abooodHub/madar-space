@@ -209,6 +209,10 @@ def verify(output: Path) -> list[dict]:
                         checks["search_empty"] = page.locator("#libraryRows .empty").count() == 1
                         page.locator("#query").fill("")
                     page.screenshot(path=str(output / f"fixture-{section}-{size}.png"), full_page=True)
+                    if section == "manual" and size == "desktop":
+                        page.locator("#content .panel").screenshot(
+                            path=str(output / "fixture-manual-window.png")
+                        )
                     results.append(
                         {
                             "page": section,
