@@ -1,5 +1,7 @@
 # مدار · MADAR
 
+[![Tests](https://github.com/abooodHub/madar-space/actions/workflows/tests.yml/badge.svg)](https://github.com/abooodHub/madar-space/actions/workflows/tests.yml)
+
 **من لحظة البث إلى معرفة قابلة للبحث.** منصة محلية لمتابعة مساحات X، تسجيلها، تجهيز الفيديو، تفريغ الكلام وتحليل النتائج في واجهة عربية تدعم الإنجليزية.
 
 ![هوية مدار ورسوم الموجة والمدار](docs/images/hero.svg)
