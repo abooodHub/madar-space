@@ -25,6 +25,7 @@ def test_missing_hf_token_blocks_job_without_leaking_secrets(tmp_path, monkeypat
             INSERT INTO transcript_segments VALUES ('preserve me');
         """)
     monkeypatch.setattr(worker, "DB_PATH", db_path)
+    monkeypatch.setattr(worker, "DATA_DIR", tmp_path / "data")
     monkeypatch.delenv("HF_TOKEN", raising=False)
     with worker._connect() as db:
         row = db.execute(
